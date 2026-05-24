@@ -7,6 +7,8 @@ data class User(
     val name: String,
     val phone: String,
     val role: UserRole,
+    val email: String? = null,
+    val profilePictureUrl: String? = null,
 )
 
 data class Location(

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "614870773808",
+    "project_id": "gosyria-807ca",
+    "storage_bucket": "gosyria-807ca.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:614870773808:android:31c596f27d8b74733b7df5",
+        "android_client_info": {
+          "package_name": "com.gosyria.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmC1eMr_fs3OIwj7cvgt2seFNRD16YXmw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

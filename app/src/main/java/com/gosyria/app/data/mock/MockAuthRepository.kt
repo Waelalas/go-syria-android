@@ -19,7 +19,7 @@ class MockAuthRepository @Inject constructor() : AuthRepository {
 
     override suspend fun login(phone: String, otp: String): Result<User> {
         delay(1000)
-        if (otp != "1234") return Result.failure(Exception("رمز التحقق غير صحيح"))
+        if (otp.isBlank()) return Result.failure(Exception("رمز التحقق غير صحيح"))
         val user = User(
             id = "user_001",
             name = "المستخدم",
@@ -32,5 +32,9 @@ class MockAuthRepository @Inject constructor() : AuthRepository {
 
     override fun getCurrentUser(): User? = currentUser
 
+    override suspend fun signInWithGoogle(idToken: String): Result<User> = Result.failure(Exception("Not supported in mock"))
+    override suspend fun signInWithFacebook(accessToken: String): Result<User> = Result.failure(Exception("Not supported in mock"))
+
     override fun logout() { currentUser = null }
+    override fun signOut() { logout() }
 }

@@ -2,9 +2,13 @@ package com.gosyria.app.ui.screens.rider
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.maps.model.LatLng
 import com.gosyria.app.data.model.Location
 import com.gosyria.app.data.model.RideOffer
+import com.gosyria.app.data.repository.AuthRepository
 import com.gosyria.app.data.repository.RideRepository
+import com.gosyria.app.util.GeocodingService
+import com.gosyria.app.util.LocationService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,25 +21,47 @@ data class RiderHomeState(
     val isSearchingOffers: Boolean = false,
     val offers: List<RideOffer> = emptyList(),
     val currentRideId: String? = null,
+    val currentLocation: LatLng? = null,
     val error: String? = null,
 )
 
+private val DAMASCUS_CENTER = LatLng(33.5138, 36.2765)
+
 @HiltViewModel
 class RiderHomeViewModel @Inject constructor(
+    private val authRepo: AuthRepository,
     private val rideRepo: RideRepository,
+    private val locationService: LocationService,
+    private val geocodingService: GeocodingService,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(RiderHomeState())
     val state = _state.asStateFlow()
+
+    init {
+        updateCurrentLocation()
+    }
+
+    fun updateCurrentLocation() {
+        viewModelScope.launch {
+            locationService.getCurrentLocation()?.let { loc ->
+                _state.update { it.copy(currentLocation = LatLng(loc.latitude, loc.longitude)) }
+            }
+        }
+    }
 
     fun onDestinationChange(v: String) = _state.update { it.copy(destination = v, error = null) }
 
     fun requestRide(onOffersReady: () -> Unit) {
         if (state.value.destination.isBlank()) return
         viewModelScope.launch {
+            val currentLoc = state.value.currentLocation ?: DAMASCUS_CENTER
             _state.update { it.copy(isSearchingOffers = true, error = null, offers = emptyList()) }
-            val pickup = Location(33.5138, 36.2765, "موقعك الحالي")
-            val dest   = Location(33.5024, 36.3172, state.value.destination)
+
+            val pickup = Location(currentLoc.latitude, currentLoc.longitude, "موقعك الحالي")
+            val destLatLng = geocodingService.geocode(state.value.destination) ?: DAMASCUS_CENTER
+            val dest = Location(destLatLng.latitude, destLatLng.longitude, state.value.destination)
+
             rideRepo.requestRide(pickup, dest)
                 .onSuccess { ride ->
                     rideRepo.getOffers(ride.id)
@@ -57,6 +83,8 @@ class RiderHomeViewModel @Inject constructor(
                 .onFailure { _state.update { s -> s.copy(error = it.message) } }
         }
     }
+
+    fun switchRole(onSwitched: () -> Unit) = onSwitched()
 
     fun dismissOffers() = _state.update { it.copy(offers = emptyList(), currentRideId = null) }
 }

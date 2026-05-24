@@ -11,6 +11,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.graphics.Color
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
@@ -34,6 +38,17 @@ fun TrackingScreen(
         position = CameraPosition.fromLatLngZoom(mapCenter, 14f)
     }
 
+    // Auto-zoom to fit all markers
+    LaunchedEffect(state.ride) {
+        state.ride?.let { ride ->
+            val bounds = LatLngBounds.builder()
+                .include(LatLng(ride.pickup.lat, ride.pickup.lng))
+                .include(LatLng(ride.destination.lat, ride.destination.lng))
+                .build()
+            cameraState.animate(CameraUpdateFactory.newLatLngBounds(bounds, 150))
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -51,11 +66,27 @@ fun TrackingScreen(
                 cameraPositionState = cameraState,
                 uiSettings = MapUiSettings(zoomControlsEnabled = true, myLocationButtonEnabled = false),
             ) {
-                pickup?.let {
-                    Marker(state = MarkerState(LatLng(it.lat, it.lng)), title = "نقطة الاستقلال")
-                }
-                state.ride?.destination?.let {
-                    Marker(state = MarkerState(LatLng(it.lat, it.lng)), title = "الوجهة")
+                state.ride?.let { ride ->
+                    val pickupPos = LatLng(ride.pickup.lat, ride.pickup.lng)
+                    val destPos = LatLng(ride.destination.lat, ride.destination.lng)
+
+                    Marker(
+                        state = MarkerState(pickupPos),
+                        title = "نقطة الاستقلال",
+                        icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
+                    )
+                    Marker(
+                        state = MarkerState(destPos),
+                        title = "الوجهة",
+                        icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
+                    )
+
+                    // Draw line between pickup and destination
+                    Polyline(
+                        points = listOf(pickupPos, destPos),
+                        color = androidx.compose.ui.graphics.Color.Blue,
+                        width = 8f
+                    )
                 }
             }
 

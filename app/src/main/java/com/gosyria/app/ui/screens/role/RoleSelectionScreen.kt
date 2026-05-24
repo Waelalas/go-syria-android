@@ -3,6 +3,7 @@ package com.gosyria.app.ui.screens.role
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -12,12 +13,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoleSelectionScreen(
     onRider: () -> Unit,
     onDriver: () -> Unit,
+    onLogout: () -> Unit,
 ) {
-    Scaffold { padding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Go Syria", fontWeight = FontWeight.Bold) },
+                actions = {
+                    IconButton(onClick = onLogout) {
+                        Icon(Icons.Filled.Logout, contentDescription = "تسجيل الخروج")
+                    }
+                }
+            )
+        }
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()

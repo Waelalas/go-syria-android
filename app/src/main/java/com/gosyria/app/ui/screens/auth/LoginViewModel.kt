@@ -2,6 +2,7 @@ package com.gosyria.app.ui.screens.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gosyria.app.data.model.UserRole
 import com.gosyria.app.data.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +17,7 @@ data class LoginState(
     val otpSent: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null,
+    val selectedRole: UserRole = UserRole.RIDER,
 )
 
 @HiltViewModel
@@ -28,6 +30,7 @@ class LoginViewModel @Inject constructor(
 
     fun onPhoneChange(v: String) = _state.update { it.copy(phone = v, error = null) }
     fun onOtpChange(v: String)   = _state.update { it.copy(otp = v, error = null) }
+    fun onRoleChange(role: UserRole) = _state.update { it.copy(selectedRole = role) }
 
     fun sendOtp(onSuccess: () -> Unit) {
         viewModelScope.launch {
@@ -38,11 +41,29 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun login(onSuccess: () -> Unit) {
+    fun login(onSuccess: (UserRole) -> Unit) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
-            auth.login(state.value.phone, state.value.otp)
-                .onSuccess { _state.update { s -> s.copy(isLoading = false) }; onSuccess() }
+            auth.login(state.value.phone, state.value.otp, state.value.selectedRole)
+                .onSuccess { user -> _state.update { s -> s.copy(isLoading = false) }; onSuccess(user.role) }
+                .onFailure { _state.update { s -> s.copy(error = it.message, isLoading = false) } }
+        }
+    }
+
+    fun signInWithGoogle(idToken: String, onSuccess: (UserRole) -> Unit) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null) }
+            auth.signInWithGoogle(idToken)
+                .onSuccess { user -> _state.update { s -> s.copy(isLoading = false) }; onSuccess(user.role) }
+                .onFailure { _state.update { s -> s.copy(error = it.message, isLoading = false) } }
+        }
+    }
+
+    fun signInWithFacebook(accessToken: String, onSuccess: (UserRole) -> Unit) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null) }
+            auth.signInWithFacebook(accessToken)
+                .onSuccess { user -> _state.update { s -> s.copy(isLoading = false) }; onSuccess(user.role) }
                 .onFailure { _state.update { s -> s.copy(error = it.message, isLoading = false) } }
         }
     }
