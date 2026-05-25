@@ -5,6 +5,12 @@ import retrofit2.http.*
 
 interface ApiService {
 
+    @POST("auth/send-otp")
+    suspend fun sendOtp(@Body body: SendOtpRequest): SendOtpResponse
+
+    @POST("auth/verify-otp")
+    suspend fun verifyOtp(@Body body: VerifyOtpRequest): TokenResponse
+
     @POST("auth/google")
     suspend fun googleSignIn(@Body body: GoogleSignInRequest): TokenResponse
 
