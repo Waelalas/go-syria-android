@@ -2,12 +2,19 @@ package com.gosyria.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Blue80   = Color(0xFF90CAF9)
-val Blue40   = Color(0xFF1B6CA8)
-val Green80  = Color(0xFFA5D6A7)
-val Green40  = Color(0xFF2E7D32)
+// Go Syria Brand Colors
+val PrimaryPurple = Color(0xFF673AB7)
+val PrimaryLight = Color(0xFF9575CD)
+val PrimaryDark = Color(0xFF512DA8)
 
-val Black    = Color(0xFF000000)
-val White    = Color(0xFFFFFFFF)
-val Surface  = Color(0xFFF5F5F5)
-val SurfaceDark = Color(0xFF1C1C1E)
+val SecondaryGold = Color(0xFFFFC107)
+val SecondaryLight = Color(0xFFFFD54F)
+
+val BackgroundLight = Color(0xFFF8F9FA)
+val BackgroundDark = Color(0xFF121212)
+
+val SurfaceLight = Color(0xFFFFFFFF)
+val SurfaceDark = Color(0xFF1E1E1E)
+
+val ErrorRed = Color(0xFFB00020)
+val SuccessGreen = Color(0xFF4CAF50)

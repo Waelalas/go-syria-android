@@ -59,7 +59,11 @@ class RiderHomeViewModel @Inject constructor(
             _state.update { it.copy(isSearchingOffers = true, error = null, offers = emptyList()) }
 
             val pickup = Location(currentLoc.latitude, currentLoc.longitude, "موقعك الحالي")
-            val destLatLng = geocodingService.geocode(state.value.destination) ?: DAMASCUS_CENTER
+            val destLatLng = geocodingService.geocode(state.value.destination)
+            if (destLatLng == null) {
+                _state.update { it.copy(isSearchingOffers = false, error = "لم يُعثر على العنوان، جرّب كتابته بشكل أوضح") }
+                return@launch
+            }
             val dest = Location(destLatLng.latitude, destLatLng.longitude, state.value.destination)
 
             rideRepo.requestRide(pickup, dest)

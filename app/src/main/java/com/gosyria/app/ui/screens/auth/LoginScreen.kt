@@ -1,30 +1,26 @@
 package com.gosyria.app.ui.screens.auth
 
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.gosyria.app.data.model.UserRole
-
-@OptIn(ExperimentalMaterial3Api::class)
-
-import androidx.compose.ui.res.painterResource
-import com.gosyria.app.R
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import androidx.compose.ui.platform.LocalContext
-import android.widget.Toast
+import com.gosyria.app.R
+import com.gosyria.app.data.model.UserRole
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     onLoginSuccess: (UserRole) -> Unit,
@@ -33,7 +29,6 @@ fun LoginScreen(
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
 
-    // Google Sign In Launcher
     val googleLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -69,47 +64,21 @@ fun LoginScreen(
             )
             Spacer(Modifier.height(32.dp))
 
-            if (!state.otpSent) {
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    SegmentedButton(
-                        selected = state.selectedRole == UserRole.RIDER,
-                        onClick = { viewModel.onRoleChange(UserRole.RIDER) },
-                        shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                        icon = {},
-                    ) { Text("راكب", fontWeight = FontWeight.Bold) }
-                    SegmentedButton(
-                        selected = state.selectedRole == UserRole.DRIVER,
-                        onClick = { viewModel.onRoleChange(UserRole.DRIVER) },
-                        shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                        icon = {},
-                    ) { Text("سائق", fontWeight = FontWeight.Bold) }
-                }
-                Spacer(Modifier.height(20.dp))
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                SegmentedButton(
+                    selected = state.selectedRole == UserRole.RIDER,
+                    onClick = { viewModel.onRoleChange(UserRole.RIDER) },
+                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+                    icon = {},
+                ) { Text("راكب", fontWeight = FontWeight.Bold) }
+                SegmentedButton(
+                    selected = state.selectedRole == UserRole.DRIVER,
+                    onClick = { viewModel.onRoleChange(UserRole.DRIVER) },
+                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+                    icon = {},
+                ) { Text("سائق", fontWeight = FontWeight.Bold) }
             }
-
-            OutlinedTextField(
-                value = state.phone,
-                onValueChange = viewModel::onPhoneChange,
-                label = { Text("رقم الهاتف") },
-                placeholder = { Text("09XXXXXXXX") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.Start),
-            )
-
-            if (state.otpSent) {
-                Spacer(Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = state.otp,
-                    onValueChange = viewModel::onOtpChange,
-                    label = { Text("رمز التحقق") },
-                    placeholder = { Text("أدخل الرمز المرسل") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
+            Spacer(Modifier.height(28.dp))
 
             state.error?.let { err ->
                 Spacer(Modifier.height(8.dp))
@@ -118,51 +87,33 @@ fun LoginScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            Button(
+            OutlinedButton(
                 onClick = {
-                    if (!state.otpSent) viewModel.sendOtp {}
-                    else viewModel.login { role -> onLoginSuccess(role) }
+                    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestIdToken("614870773808-ph2j0trbcg3bik5rqu0buesbodg4jhiv.apps.googleusercontent.com")
+                        .requestEmail()
+                        .build()
+                    val client = GoogleSignIn.getClient(context, gso)
+                    googleLauncher.launch(client.signInIntent)
                 },
-                enabled = !state.isLoading && state.phone.isNotBlank() && (if (state.otpSent) state.otp.isNotBlank() else true),
+                enabled = !state.isLoading,
                 modifier = Modifier.fillMaxWidth().height(52.dp),
             ) {
-                if (state.isLoading) CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                else Text(if (!state.otpSent) "إرسال رمز التحقق" else "تسجيل الدخول", fontWeight = FontWeight.Bold)
-            }
-
-            if (!state.otpSent) {
-                Spacer(Modifier.height(32.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    HorizontalDivider(modifier = Modifier.weight(1f))
-                    Text(" أو الدخول عبر ", modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
-                    HorizontalDivider(modifier = Modifier.weight(1f))
-                }
-                Spacer(Modifier.height(24.dp))
-                
-                OutlinedButton(
-                    onClick = {
-                        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                            .requestIdToken("614870773808-ph2j0trbcg3bik5rqu0buesbodg4jhiv.apps.googleusercontent.com")
-                            .requestEmail()
-                            .build()
-                        val client = GoogleSignIn.getClient(context, gso)
-                        googleLauncher.launch(client.signInIntent)
-                    },
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                ) {
+                if (state.isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_google),
                             contentDescription = null,
                             modifier = Modifier.size(20.dp),
-                            tint = androidx.compose.ui.graphics.Color.Unspecified
+                            tint = androidx.compose.ui.graphics.Color.Unspecified,
                         )
                         Spacer(Modifier.width(8.dp))
                         Text("متابعة باستخدام Google", style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }
-
         }
     }
 }

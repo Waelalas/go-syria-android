@@ -1,6 +1,3 @@
 <resources>
     <string name="app_name">Go Syria</string>
-    <string name="facebook_app_id">971399292163199</string>
-    <string name="fb_login_protocol_scheme">fb971399292163199</string>
-    <string name="facebook_client_token">54e9956f671c6d378da6bc3e3518a474</string>
 </resources>

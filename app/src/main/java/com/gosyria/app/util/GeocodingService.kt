@@ -14,15 +14,12 @@ import javax.inject.Singleton
 class GeocodingService @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    // Syria bounding box: SW(32.3, 35.7) NE(37.3, 42.4)
     @Suppress("DEPRECATION")
     suspend fun geocode(address: String): LatLng? = withContext(Dispatchers.IO) {
         if (!Geocoder.isPresent()) return@withContext null
         try {
-            val results = Geocoder(context, Locale("ar")).getFromLocationName(
-                address, 1,
-                32.3, 35.7, 37.3, 42.4,
-            )
+            // No bounding box — works globally (Syria, Germany, anywhere)
+            val results = Geocoder(context, Locale.getDefault()).getFromLocationName(address, 1)
             results?.firstOrNull()?.let { LatLng(it.latitude, it.longitude) }
         } catch (e: Exception) {
             null

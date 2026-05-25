@@ -170,7 +170,8 @@ class DriverHomeViewModel @Inject constructor(
     private fun openWebSocket() {
         val token = tokenStore.token ?: return
         val request = Request.Builder()
-            .url("wss://gosyria-backend-614870773808.europe-west3.run.app/drivers/ws/$token")
+            .url("wss://gosyria-backend-614870773808.europe-west3.run.app/drivers/ws")
+            .addHeader("Authorization", "Bearer $token")
             .build()
         ws = okHttpClient.newWebSocket(request, object : WebSocketListener() {
             override fun onMessage(webSocket: WebSocket, text: String) {

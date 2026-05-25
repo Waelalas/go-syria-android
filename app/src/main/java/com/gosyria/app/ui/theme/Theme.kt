@@ -1,30 +1,30 @@
 package com.gosyria.app.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 
 private val LightColors = lightColorScheme(
-    primary          = Blue40,
-    onPrimary        = White,
-    primaryContainer = Blue80,
-    secondary        = Green40,
-    onSecondary      = White,
-    background       = Surface,
-    surface          = White,
+    primary = PrimaryPurple,
+    onPrimary = Color.White,
+    primaryContainer = PrimaryLight,
+    secondary = SecondaryGold,
+    onSecondary = Color.Black,
+    background = BackgroundLight,
+    surface = SurfaceLight,
+    error = ErrorRed,
 )
 
 private val DarkColors = darkColorScheme(
-    primary          = Blue80,
-    onPrimary        = Black,
-    primaryContainer = Blue40,
-    secondary        = Green80,
-    onSecondary      = Black,
-    background       = SurfaceDark,
-    surface          = Color(0xFF2C2C2E),
+    primary = PrimaryLight,
+    onPrimary = Color.Black,
+    primaryContainer = PrimaryDark,
+    secondary = SecondaryGold,
+    onSecondary = Color.Black,
+    background = BackgroundDark,
+    surface = SurfaceDark,
+    error = ErrorRed,
 )
 
 @Composable
@@ -32,13 +32,12 @@ fun GoSyriaTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val ctx = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(ctx) else dynamicLightColorScheme(ctx)
-        }
-        darkTheme -> DarkColors
-        else      -> LightColors
-    }
-    MaterialTheme(colorScheme = colorScheme, content = content)
+    // We stick to our brand colors for consistency across devices
+    val colorScheme = if (darkTheme) DarkColors else LightColors
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        content = content
+    )
 }

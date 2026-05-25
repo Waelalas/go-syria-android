@@ -50,7 +50,8 @@ class HttpRideRepository @Inject constructor(
         }
 
         val request = Request.Builder()
-            .url("wss://gosyria-backend-614870773808.europe-west3.run.app/riders/ws/$token")
+            .url("wss://gosyria-backend-614870773808.europe-west3.run.app/riders/ws")
+            .addHeader("Authorization", "Bearer $token")
             .build()
 
         val ws = okHttpClient.newWebSocket(request, object : WebSocketListener() {

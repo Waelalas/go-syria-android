@@ -96,7 +96,7 @@ fun RiderHomeScreen(
                     OutlinedTextField(
                         value = state.destination,
                         onValueChange = viewModel::onDestinationChange,
-                        placeholder = { Text("أدخل وجهتك") },
+                        placeholder = { Text("مثال: Berlin Mitte أو Alexanderplatz") },
                         leadingIcon = { Icon(Icons.Filled.Search, null) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
@@ -178,7 +178,7 @@ private fun OfferCard(offer: RideOffer, onAccept: () -> Unit) {
                 Text("⭐ ${offer.driver.rating}  ·  ${offer.etaMinutes} دقيقة", style = MaterialTheme.typography.bodySmall)
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text("${offer.fare.toInt()} ل.س", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Text("${offer.fare.toInt()} pts", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.height(4.dp))
                 Button(onClick = onAccept, modifier = Modifier.height(36.dp), contentPadding = PaddingValues(horizontal = 16.dp)) {
                     Text("اختيار", style = MaterialTheme.typography.labelMedium)

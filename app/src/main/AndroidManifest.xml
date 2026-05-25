@@ -9,7 +9,7 @@
 
     <application
         android:name=".GoSyriaApp"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -21,9 +21,6 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
 
-        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
-        <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/facebook_client_token"/>
-
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -33,10 +30,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <provider android:authorities="com.facebook.app.FacebookContentProvider971399292163199"
-            android:name="com.facebook.FacebookContentProvider"
-            android:exported="true" />
 
         <service
             android:name=".GoSyriaMessagingService"
