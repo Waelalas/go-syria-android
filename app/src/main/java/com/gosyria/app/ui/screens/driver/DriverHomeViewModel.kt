@@ -75,6 +75,10 @@ class DriverHomeViewModel @Inject constructor(
     private fun goOnline() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
+            locationService.getCurrentLocation()?.let { loc ->
+                _state.update { it.copy(currentLocation = LatLng(loc.latitude, loc.longitude)) }
+                runCatching { api.updateLocation(DriverLocationBody(loc.latitude, loc.longitude)) }
+            }
             runCatching { api.driverOnline() }
                 .onSuccess {
                     _state.update { s -> s.copy(isOnline = true, isLoading = false) }
