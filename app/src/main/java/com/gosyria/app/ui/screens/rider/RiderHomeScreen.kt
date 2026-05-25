@@ -96,7 +96,7 @@ fun RiderHomeScreen(
                     OutlinedTextField(
                         value = state.destination,
                         onValueChange = viewModel::onDestinationChange,
-                        placeholder = { Text("مثال: Berlin Mitte أو Alexanderplatz") },
+                        placeholder = { Text("مثال: ساحة الأمويين أو باب توما") },
                         leadingIcon = { Icon(Icons.Filled.Search, null) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
