@@ -5,7 +5,6 @@ import com.google.gson.JsonObject
 import com.gosyria.app.data.local.TokenStore
 import com.gosyria.app.data.model.*
 import com.gosyria.app.data.remote.ApiService
-import com.gosyria.app.data.remote.dto.AcceptRideBody
 import com.gosyria.app.data.remote.dto.RequestRideBody
 import com.gosyria.app.data.remote.dto.RideOut
 import kotlinx.coroutines.channels.awaitClose
@@ -90,11 +89,16 @@ class HttpRideRepository @Inject constructor(
         repeat(30) {
             val ride = api.getRide(rideId)
             if (ride.driver_id != null) {
+                val driverInfo = runCatching { api.getDriverPublic(ride.driver_id) }.getOrNull()
                 return@runCatching listOf(
                     RideOffer(
                         driver = Driver(
-                            id = ride.driver_id, name = "سائق", phone = "",
-                            rating = 5.0, vehicleMake = "", vehiclePlate = "",
+                            id = ride.driver_id,
+                            name = driverInfo?.name ?: "سائق",
+                            phone = "",
+                            rating = driverInfo?.rating ?: 5.0,
+                            vehicleMake = driverInfo?.vehicle_make ?: "",
+                            vehiclePlate = driverInfo?.vehicle_plate ?: "",
                             location = Location(0.0, 0.0),
                         ),
                         fare = ride.fare,
@@ -108,7 +112,7 @@ class HttpRideRepository @Inject constructor(
     }
 
     override suspend fun acceptOffer(rideId: String, driverId: String): Result<RideRequest> =
-        runCatching { api.acceptRide(AcceptRideBody(rideId)).toModel() }
+        runCatching { api.getRide(rideId).toModel() }
 
     override suspend fun cancelRide(rideId: String): Result<Unit> =
         runCatching { api.updateRideStatus(rideId, "CANCELLED"); Unit }

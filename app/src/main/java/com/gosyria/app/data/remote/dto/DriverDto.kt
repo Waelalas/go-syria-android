@@ -7,6 +7,14 @@ data class AcceptRideBody(val ride_id: String)
 data class GenericResponse(val message: String = "")
 data class FcmTokenBody(val token: String)
 
+data class DriverPublicOut(
+    val user_id: String = "",
+    val name: String = "",
+    val vehicle_make: String = "",
+    val vehicle_plate: String = "",
+    val rating: Double = 5.0,
+)
+
 data class IncomingRideMsg(
     val type: String = "",
     val ride_id: String = "",

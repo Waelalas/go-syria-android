@@ -5,12 +5,6 @@ import retrofit2.http.*
 
 interface ApiService {
 
-    @POST("auth/send-otp")
-    suspend fun sendOtp(@Body body: SendOtpRequest): SendOtpResponse
-
-    @POST("auth/verify-otp")
-    suspend fun verifyOtp(@Body body: VerifyOtpRequest): TokenResponse
-
     @POST("auth/google")
     suspend fun googleSignIn(@Body body: GoogleSignInRequest): TokenResponse
 
@@ -22,6 +16,9 @@ interface ApiService {
 
     @POST("rides/accept")
     suspend fun acceptRide(@Body body: AcceptRideBody): RideOut
+
+    @GET("drivers/{id}/public")
+    suspend fun getDriverPublic(@Path("id") id: String): DriverPublicOut
 
     @POST("drivers/online")
     suspend fun driverOnline(): DriverStatusResponse
