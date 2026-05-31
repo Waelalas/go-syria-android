@@ -5,6 +5,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
+    id("com.google.firebase.appdistribution")
 }
 
 android {
@@ -26,12 +27,22 @@ android {
         debug {
             isDebuggable = true
             manifestPlaceholders["MAPS_API_KEY"] = mapsKey
+            firebaseAppDistribution {
+                artifactType = "APK"
+                releaseNotesFile = "$rootDir/release-notes.txt"
+                groups = "testers"
+            }
         }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             manifestPlaceholders["MAPS_API_KEY"] = mapsKey
+            firebaseAppDistribution {
+                artifactType = "APK"
+                releaseNotesFile = "$rootDir/release-notes.txt"
+                groups = "testers"
+            }
         }
     }
 
