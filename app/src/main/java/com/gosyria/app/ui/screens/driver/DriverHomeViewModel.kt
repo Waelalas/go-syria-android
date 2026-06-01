@@ -32,6 +32,7 @@ import javax.inject.Inject
 data class DriverHomeState(
     val isOnline: Boolean = false,
     val isLoading: Boolean = false,
+    val isReconnecting: Boolean = false,
     val error: String? = null,
     val incomingRide: IncomingRideMsg? = null,
     val vehicleMake: String = "",
@@ -54,6 +55,8 @@ class DriverHomeViewModel @Inject constructor(
 
     private var ws: WebSocket? = null
     private var locationJob: Job? = null
+    private var reconnectJob: Job? = null
+    private var reconnectDelay = 1_000L
     private val gson = Gson()
 
     init {
@@ -97,13 +100,16 @@ class DriverHomeViewModel @Inject constructor(
     }
 
     private fun goOffline() {
+        _state.update { it.copy(isOnline = false, isReconnecting = false) }
+        reconnectJob?.cancel(); reconnectJob = null
+        reconnectDelay = 1_000L
         ws?.close(1000, null); ws = null
         stopLocationUpdates()
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             runCatching { api.driverOffline() }
-                .onSuccess { _state.update { s -> s.copy(isOnline = false, isLoading = false) } }
-                .onFailure { _state.update { s -> s.copy(isOnline = false, isLoading = false) } }
+                .onSuccess { _state.update { s -> s.copy(isLoading = false) } }
+                .onFailure { _state.update { s -> s.copy(isLoading = false) } }
         }
     }
 
@@ -150,9 +156,10 @@ class DriverHomeViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { api.acceptRide(AcceptRideBody(rideId)) }
                 .onSuccess {
+                    reconnectJob?.cancel(); reconnectJob = null
                     ws?.close(1000, null); ws = null
                     stopLocationUpdates()
-                    _state.update { s -> s.copy(incomingRide = null, isOnline = false) }
+                    _state.update { s -> s.copy(incomingRide = null, isOnline = false, isReconnecting = false) }
                     onAccepted(rideId)
                 }
                 .onFailure { e -> _state.update { s -> s.copy(error = e.message) } }
@@ -160,11 +167,12 @@ class DriverHomeViewModel @Inject constructor(
     }
 
     fun switchRole(onSwitched: () -> Unit) {
+        reconnectJob?.cancel(); reconnectJob = null
         ws?.close(1000, null); ws = null
         stopLocationUpdates()
         viewModelScope.launch {
             runCatching { api.driverOffline() }
-            _state.update { it.copy(isOnline = false) }
+            _state.update { it.copy(isOnline = false, isReconnecting = false) }
             onSwitched()
         }
     }
@@ -178,6 +186,10 @@ class DriverHomeViewModel @Inject constructor(
             .addHeader("Authorization", "Bearer $token")
             .build()
         ws = okHttpClient.newWebSocket(request, object : WebSocketListener() {
+            override fun onOpen(webSocket: WebSocket, response: okhttp3.Response) {
+                reconnectDelay = 1_000L
+                _state.update { it.copy(isReconnecting = false) }
+            }
             override fun onMessage(webSocket: WebSocket, text: String) {
                 runCatching {
                     val msg = gson.fromJson(text, IncomingRideMsg::class.java)
@@ -187,14 +199,26 @@ class DriverHomeViewModel @Inject constructor(
                 }
             }
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: okhttp3.Response?) {
-                _state.update { s -> s.copy(isOnline = false, error = "انقطع الاتصال: ${t.message}") }
+                if (!_state.value.isOnline) return
+                _state.update { it.copy(isReconnecting = true) }
+                scheduleReconnect()
             }
         })
+    }
+
+    private fun scheduleReconnect() {
+        reconnectJob?.cancel()
+        reconnectJob = viewModelScope.launch {
+            delay(reconnectDelay)
+            reconnectDelay = minOf(reconnectDelay * 2, 30_000L)
+            if (_state.value.isOnline) openWebSocket()
+        }
     }
 
     override fun onCleared() {
         super.onCleared()
         locationJob?.cancel()
+        reconnectJob?.cancel()
         ws?.close(1000, null)
     }
 }

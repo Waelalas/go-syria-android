@@ -7,6 +7,7 @@ import com.gosyria.app.data.model.*
 import com.gosyria.app.data.remote.ApiService
 import com.gosyria.app.data.remote.dto.RequestRideBody
 import com.gosyria.app.data.remote.dto.RideOut
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -48,41 +49,55 @@ class HttpRideRepository @Inject constructor(
             trySend(it)
         }
 
-        val request = Request.Builder()
-            .url("wss://gosyria-backend-614870773808.europe-west3.run.app/riders/ws")
-            .addHeader("Authorization", "Bearer $token")
-            .build()
-
-        val ws = okHttpClient.newWebSocket(request, object : WebSocketListener() {
-            override fun onMessage(webSocket: WebSocket, text: String) {
-                runCatching {
-                    val obj = gson.fromJson(text, JsonObject::class.java)
-                    when (obj.get("type")?.asString) {
-                        "RIDE_STATUS_UPDATE" -> {
-                            val statusStr = obj.get("status")?.asString ?: return@runCatching
-                            val newStatus = mapStatus(statusStr) ?: return@runCatching
-                            val updated = currentRide.get()?.copy(status = newStatus) ?: return@runCatching
-                            currentRide.set(updated)
-                            trySend(updated)
-                        }
-                        "DRIVER_FOUND" -> {
-                            // Fetch full ride to get driver info
-                            scope.launch {
-                                runCatching { api.getRide(rideId).toModel() }.onSuccess {
-                                    currentRide.set(it)
-                                    trySend(it)
+        val connectJob = scope.launch {
+            var reconnectDelay = 1_000L
+            while (true) {
+                val failure = CompletableDeferred<Unit>()
+                val request = Request.Builder()
+                    .url("wss://gosyria-backend-614870773808.europe-west3.run.app/riders/ws")
+                    .addHeader("Authorization", "Bearer $token")
+                    .build()
+                val ws = okHttpClient.newWebSocket(request, object : WebSocketListener() {
+                    override fun onOpen(webSocket: WebSocket, response: okhttp3.Response) {
+                        reconnectDelay = 1_000L
+                    }
+                    override fun onMessage(webSocket: WebSocket, text: String) {
+                        runCatching {
+                            val obj = gson.fromJson(text, JsonObject::class.java)
+                            when (obj.get("type")?.asString) {
+                                "RIDE_STATUS_UPDATE" -> {
+                                    val statusStr = obj.get("status")?.asString ?: return@runCatching
+                                    val newStatus = mapStatus(statusStr) ?: return@runCatching
+                                    val updated = currentRide.get()?.copy(status = newStatus) ?: return@runCatching
+                                    currentRide.set(updated)
+                                    trySend(updated)
+                                }
+                                "DRIVER_FOUND" -> {
+                                    scope.launch {
+                                        runCatching { api.getRide(rideId).toModel() }.onSuccess {
+                                            currentRide.set(it)
+                                            trySend(it)
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
+                    override fun onFailure(webSocket: WebSocket, t: Throwable, response: okhttp3.Response?) {
+                        failure.complete(Unit)
+                    }
+                })
+                try {
+                    failure.await()
+                } finally {
+                    ws.close(1000, null)
                 }
+                delay(reconnectDelay)
+                reconnectDelay = minOf(reconnectDelay * 2, 30_000L)
             }
-            override fun onFailure(webSocket: WebSocket, t: Throwable, response: okhttp3.Response?) {
-                close(t)
-            }
-        })
+        }
 
-        awaitClose { ws.close(1000, null) }
+        awaitClose { connectJob.cancel() }
     }
 
     override suspend fun getOffers(rideId: String): Result<List<RideOffer>> = runCatching {

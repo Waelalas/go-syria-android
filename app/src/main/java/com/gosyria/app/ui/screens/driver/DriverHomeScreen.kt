@@ -16,10 +16,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import com.gosyria.app.data.remote.dto.IncomingRideMsg
+import com.gosyria.app.util.SyriaGeo
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -38,9 +39,14 @@ fun DriverHomeScreen(
     )
     LaunchedEffect(Unit) { locationPermissionState.launchMultiplePermissionRequest() }
 
-    val mapCenter = state.currentLocation ?: LatLng(33.5138, 36.2765)
     val cameraState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(mapCenter, 13f)
+        position = CameraPosition.fromLatLngZoom(SyriaGeo.CENTER, SyriaGeo.DEFAULT_ZOOM)
+    }
+
+    LaunchedEffect(state.currentLocation) {
+        state.currentLocation?.let {
+            cameraState.animate(CameraUpdateFactory.newLatLngZoom(it, SyriaGeo.CITY_ZOOM))
+        }
     }
 
     Scaffold(
@@ -121,6 +127,26 @@ fun DriverHomeScreen(
                                 if (state.isOnline) "أنت متصل – في انتظار الطلبات" else "أنت غير متصل",
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                             )
+                        }
+                        if (state.isReconnecting) {
+                            Spacer(Modifier.height(6.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth(),
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(14.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    "جاري إعادة الاتصال...",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
                         Spacer(Modifier.height(16.dp))
                         Button(
