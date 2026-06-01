@@ -16,7 +16,7 @@ android {
         applicationId = "com.gosyria.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
+        versionCode = (System.currentTimeMillis() / 1000).toInt()
         versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
@@ -30,7 +30,7 @@ android {
             firebaseAppDistribution {
                 artifactType = "APK"
                 releaseNotesFile = "$rootDir/release-notes.txt"
-                groups = "testers"
+                groups = "Test"
             }
         }
         release {
@@ -41,7 +41,7 @@ android {
             firebaseAppDistribution {
                 artifactType = "APK"
                 releaseNotesFile = "$rootDir/release-notes.txt"
-                groups = "testers"
+                groups = "Test"
             }
         }
     }
