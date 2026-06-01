@@ -15,6 +15,7 @@ import javax.inject.Inject
 data class TrackingState(
     val ride: RideRequest? = null,
     val isCompleted: Boolean = false,
+    val isCancelled: Boolean = false,
 )
 
 @HiltViewModel
@@ -28,7 +29,13 @@ class TrackingViewModel @Inject constructor(
     fun startTracking(rideId: String) {
         viewModelScope.launch {
             rideRepo.observeRide(rideId).collect { ride ->
-                _state.update { it.copy(ride = ride, isCompleted = ride.status == RideStatus.COMPLETED) }
+                _state.update {
+                    it.copy(
+                        ride = ride,
+                        isCompleted = ride.status == RideStatus.COMPLETED,
+                        isCancelled = ride.status == RideStatus.CANCELLED,
+                    )
+                }
             }
         }
     }

@@ -11,7 +11,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.ui.graphics.Color
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -19,6 +18,7 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import com.gosyria.app.data.model.RideStatus
+import com.gosyria.app.util.SyriaGeo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,11 +31,13 @@ fun TrackingScreen(
 
     LaunchedEffect(rideId) { viewModel.startTracking(rideId) }
     LaunchedEffect(state.isCompleted) { if (state.isCompleted) onRideCompleted() }
+    LaunchedEffect(state.isCancelled) { if (state.isCancelled) onRideCompleted() }
 
     val pickup = state.ride?.pickup
-    val mapCenter = if (pickup != null) LatLng(pickup.lat, pickup.lng) else LatLng(33.5138, 36.2765)
+    val mapCenter = pickup?.let { LatLng(it.lat, it.lng) } ?: SyriaGeo.CENTER
+    val initialZoom = if (pickup != null) 14f else SyriaGeo.DEFAULT_ZOOM
     val cameraState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(mapCenter, 14f)
+        position = CameraPosition.fromLatLngZoom(mapCenter, initialZoom)
     }
 
     // Auto-zoom to fit all markers

@@ -86,7 +86,7 @@ class HttpRideRepository @Inject constructor(
     }
 
     override suspend fun getOffers(rideId: String): Result<List<RideOffer>> = runCatching {
-        repeat(30) {
+        repeat(90) { // 90 × 2ثانية = 3 دقائق
             val ride = api.getRide(rideId)
             if (ride.driver_id != null) {
                 val driverInfo = runCatching { api.getDriverPublic(ride.driver_id) }.getOrNull()
@@ -130,8 +130,8 @@ class HttpRideRepository @Inject constructor(
     private fun RideOut.toModel() = RideRequest(
         id = id,
         riderId = rider_id,
-        pickup = Location(0.0, 0.0, pickup_address),
-        destination = Location(0.0, 0.0, dest_address),
+        pickup = Location(pickup_lat, pickup_lng, pickup_address),
+        destination = Location(dest_lat, dest_lng, dest_address),
         estimatedFare = fare,
         estimatedMinutes = 10,
         status = mapStatus(status) ?: RideStatus.SEARCHING,

@@ -9,6 +9,7 @@ import com.gosyria.app.data.repository.AuthRepository
 import com.gosyria.app.data.repository.RideRepository
 import com.gosyria.app.util.GeocodingService
 import com.gosyria.app.util.LocationService
+import com.gosyria.app.util.SyriaGeo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,8 +25,6 @@ data class RiderHomeState(
     val currentLocation: LatLng? = null,
     val error: String? = null,
 )
-
-private val DAMASCUS_CENTER = LatLng(33.5138, 36.2765)
 
 @HiltViewModel
 class RiderHomeViewModel @Inject constructor(
@@ -55,7 +54,7 @@ class RiderHomeViewModel @Inject constructor(
     fun requestRide(onOffersReady: () -> Unit) {
         if (state.value.destination.isBlank()) return
         viewModelScope.launch {
-            val currentLoc = state.value.currentLocation ?: DAMASCUS_CENTER
+            val currentLoc = state.value.currentLocation ?: SyriaGeo.CENTER
             _state.update { it.copy(isSearchingOffers = true, error = null, offers = emptyList()) }
 
             val pickup = Location(currentLoc.latitude, currentLoc.longitude, "موقعك الحالي")
@@ -68,12 +67,18 @@ class RiderHomeViewModel @Inject constructor(
 
             rideRepo.requestRide(pickup, dest)
                 .onSuccess { ride ->
+                    _state.update { it.copy(currentRideId = ride.id) }
                     rideRepo.getOffers(ride.id)
                         .onSuccess { offers ->
-                            _state.update { it.copy(isSearchingOffers = false, offers = offers, currentRideId = ride.id) }
-                            onOffersReady()
+                            if (offers.isEmpty()) {
+                                rideRepo.cancelRide(ride.id)
+                                _state.update { it.copy(isSearchingOffers = false, currentRideId = null, error = "لم يتوفر سائق حالياً، حاول مجدداً") }
+                            } else {
+                                _state.update { it.copy(isSearchingOffers = false, offers = offers) }
+                                onOffersReady()
+                            }
                         }
-                        .onFailure { _state.update { s -> s.copy(isSearchingOffers = false, error = it.message) } }
+                        .onFailure { _state.update { s -> s.copy(isSearchingOffers = false, currentRideId = null, error = it.message) } }
                 }
                 .onFailure { _state.update { s -> s.copy(isSearchingOffers = false, error = it.message) } }
         }
