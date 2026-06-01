@@ -83,11 +83,17 @@ fun TrackingScreen(
                         icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
                     )
 
-                    // Draw line between pickup and destination
                     Polyline(
                         points = listOf(pickupPos, destPos),
                         color = androidx.compose.ui.graphics.Color.Blue,
                         width = 8f
+                    )
+                }
+                state.ride?.driverLocation?.let { driverLoc ->
+                    Marker(
+                        state = MarkerState(LatLng(driverLoc.lat, driverLoc.lng)),
+                        title = "موقع السائق",
+                        icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN),
                     )
                 }
             }

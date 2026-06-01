@@ -11,6 +11,7 @@ import com.gosyria.app.util.GeocodingService
 import com.gosyria.app.util.LocationService
 import com.gosyria.app.util.SyriaGeo
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -36,6 +37,7 @@ class RiderHomeViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(RiderHomeState())
     val state = _state.asStateFlow()
+    private var searchJob: Job? = null
 
     init {
         updateCurrentLocation()
@@ -53,7 +55,8 @@ class RiderHomeViewModel @Inject constructor(
 
     fun requestRide(onOffersReady: () -> Unit) {
         if (state.value.destination.isBlank()) return
-        viewModelScope.launch {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
             val currentLoc = state.value.currentLocation ?: SyriaGeo.CENTER
             _state.update { it.copy(isSearchingOffers = true, error = null, offers = emptyList()) }
 
@@ -90,6 +93,16 @@ class RiderHomeViewModel @Inject constructor(
             rideRepo.acceptOffer(rideId, driverId)
                 .onSuccess { onAccepted(rideId) }
                 .onFailure { _state.update { s -> s.copy(error = it.message) } }
+        }
+    }
+
+    fun cancelSearch() {
+        val rideId = state.value.currentRideId
+        searchJob?.cancel()
+        searchJob = null
+        _state.update { it.copy(isSearchingOffers = false, currentRideId = null, error = null) }
+        if (rideId != null) {
+            viewModelScope.launch { rideRepo.cancelRide(rideId) }
         }
     }
 

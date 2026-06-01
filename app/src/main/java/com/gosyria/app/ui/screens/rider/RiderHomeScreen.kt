@@ -19,9 +19,9 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import com.gosyria.app.data.model.RideOffer
+import com.gosyria.app.util.SyriaGeo
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -32,6 +32,7 @@ fun RiderHomeScreen(
 ) {
     val state by viewModel.state.collectAsState()
     var showOffers by remember { mutableStateOf(false) }
+    var showCancelConfirm by remember { mutableStateOf(false) }
 
     val locationPermissionState = rememberMultiplePermissionsState(
         listOf(
@@ -44,14 +45,13 @@ fun RiderHomeScreen(
         locationPermissionState.launchMultiplePermissionRequest()
     }
 
-    val damascus = LatLng(33.5138, 36.2765)
     val cameraState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(damascus, 13f)
+        position = CameraPosition.fromLatLngZoom(SyriaGeo.CENTER, SyriaGeo.DEFAULT_ZOOM)
     }
 
     LaunchedEffect(state.currentLocation) {
         state.currentLocation?.let {
-            cameraState.animate(CameraUpdateFactory.newLatLngZoom(it, 15f))
+            cameraState.animate(CameraUpdateFactory.newLatLngZoom(it, SyriaGeo.CITY_ZOOM))
         }
     }
 
@@ -78,7 +78,7 @@ fun RiderHomeScreen(
                 uiSettings = MapUiSettings(zoomControlsEnabled = true, myLocationButtonEnabled = true),
             ) {
                 Marker(
-                    state = MarkerState(position = state.currentLocation ?: damascus),
+                    state = MarkerState(position = state.currentLocation ?: SyriaGeo.CENTER),
                     title = "موقعك الحالي"
                 )
             }
@@ -96,7 +96,7 @@ fun RiderHomeScreen(
                     OutlinedTextField(
                         value = state.destination,
                         onValueChange = viewModel::onDestinationChange,
-                        placeholder = { Text("مثال: ساحة الأمويين أو باب توما") },
+                        placeholder = { Text("مثال: حلب، حمص، اللاذقية، دمشق") },
                         leadingIcon = { Icon(Icons.Filled.Search, null) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
@@ -123,9 +123,43 @@ fun RiderHomeScreen(
                             }
                         }
                     }
+                    if (state.isSearchingOffers) {
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = { showCancelConfirm = true },
+                            modifier = Modifier.fillMaxWidth().height(46.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                        ) {
+                            Text("إلغاء البحث", fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
             }
         }
+    }
+
+    if (showCancelConfirm) {
+        AlertDialog(
+            onDismissRequest = { showCancelConfirm = false },
+            title = { Text("إلغاء البحث", fontWeight = FontWeight.Bold) },
+            text = { Text("هل تريد إلغاء البحث عن سائق؟") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showCancelConfirm = false
+                        viewModel.cancelSearch()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                ) {
+                    Text("إلغاء البحث")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showCancelConfirm = false }) {
+                    Text("تراجع")
+                }
+            },
+        )
     }
 
     if (showOffers && state.offers.isNotEmpty()) {

@@ -11,4 +11,7 @@ sealed class Screen(val route: String) {
     object Tracking   : Screen("tracking/{rideId}") {
         fun createRoute(rideId: String) = "tracking/$rideId"
     }
+    object Rating     : Screen("rating/{rideId}") {
+        fun createRoute(rideId: String) = "rating/$rideId"
+    }
 }

@@ -12,6 +12,7 @@ import com.gosyria.app.ui.AppViewModel
 import com.gosyria.app.ui.screens.auth.LoginScreen
 import com.gosyria.app.ui.screens.driver.DriverHomeScreen
 import com.gosyria.app.ui.screens.driver.DriverTripScreen
+import com.gosyria.app.ui.screens.rider.RatingScreen
 import com.gosyria.app.ui.screens.rider.RiderHomeScreen
 import com.gosyria.app.ui.screens.rider.TrackingScreen
 import com.gosyria.app.ui.screens.role.RoleSelectionScreen
@@ -97,10 +98,23 @@ fun NavGraph(appViewModel: AppViewModel = hiltViewModel()) {
             TrackingScreen(
                 rideId = rideId,
                 onRideCompleted = {
+                    navController.navigate(Screen.Rating.createRoute(rideId)) {
+                        popUpTo(Screen.Tracking.route) { inclusive = true }
+                    }
+                },
+            )
+        }
+
+        composable(
+            route = Screen.Rating.route,
+            arguments = listOf(navArgument("rideId") { type = NavType.StringType }),
+        ) {
+            RatingScreen(
+                onDone = {
                     navController.navigate(Screen.RiderHome.route) {
                         popUpTo(Screen.RiderHome.route) { inclusive = true }
                     }
-                },
+                }
             )
         }
     }

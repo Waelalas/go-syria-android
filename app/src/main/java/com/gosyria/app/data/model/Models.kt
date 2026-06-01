@@ -34,6 +34,7 @@ data class RideRequest(
     val estimatedFare: Double,
     val estimatedMinutes: Int,
     val status: RideStatus = RideStatus.SEARCHING,
+    val driverLocation: Location? = null,
 )
 
 data class Driver(

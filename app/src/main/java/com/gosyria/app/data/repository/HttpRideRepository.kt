@@ -73,12 +73,26 @@ class HttpRideRepository @Inject constructor(
                                     trySend(updated)
                                 }
                                 "DRIVER_FOUND" -> {
+                                    val driverLat = obj.get("driver_lat")?.asDouble
+                                    val driverLng = obj.get("driver_lng")?.asDouble
                                     scope.launch {
-                                        runCatching { api.getRide(rideId).toModel() }.onSuccess {
-                                            currentRide.set(it)
-                                            trySend(it)
+                                        runCatching { api.getRide(rideId).toModel() }.onSuccess { ride ->
+                                            val updated = if (driverLat != null && driverLng != null)
+                                                ride.copy(driverLocation = Location(driverLat, driverLng))
+                                            else ride
+                                            currentRide.set(updated)
+                                            trySend(updated)
                                         }
                                     }
+                                }
+                                "DRIVER_LOCATION_UPDATE" -> {
+                                    val lat = obj.get("lat")?.asDouble ?: return@runCatching
+                                    val lng = obj.get("lng")?.asDouble ?: return@runCatching
+                                    val updated = currentRide.get()?.copy(
+                                        driverLocation = Location(lat, lng)
+                                    ) ?: return@runCatching
+                                    currentRide.set(updated)
+                                    trySend(updated)
                                 }
                             }
                         }
