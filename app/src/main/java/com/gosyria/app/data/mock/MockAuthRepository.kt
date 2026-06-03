@@ -14,24 +14,6 @@ class MockAuthRepository @Inject constructor() : AuthRepository {
 
     override fun getCurrentUser(): User? = currentUser
 
-    override suspend fun sendOtp(phone: String): Result<Unit> {
-        delay(800)
-        return Result.success(Unit)
-    }
-
-    override suspend fun login(phone: String, otp: String, role: UserRole): Result<User> {
-        delay(1000)
-        if (otp.isBlank()) return Result.failure(Exception("رمز التحقق غير صحيح"))
-        val user = User(
-            id = "user_001",
-            name = "المستخدم",
-            phone = phone,
-            role = role,
-        )
-        currentUser = user
-        return Result.success(user)
-    }
-
     override suspend fun signInWithGoogle(idToken: String, role: String): Result<User> {
         delay(1000)
         val userRole = if (role == "DRIVER") UserRole.DRIVER else UserRole.RIDER

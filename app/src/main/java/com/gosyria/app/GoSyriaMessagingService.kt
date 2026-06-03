@@ -8,12 +8,28 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.gosyria.app.data.local.TokenStore
+import com.gosyria.app.data.remote.ApiService
+import com.gosyria.app.data.remote.dto.FcmTokenBody
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class GoSyriaMessagingService : FirebaseMessagingService() {
 
+    @Inject lateinit var api: ApiService
+    @Inject lateinit var tokenStore: TokenStore
+
     override fun onNewToken(token: String) {
-        getSharedPreferences("gosyria_fcm", MODE_PRIVATE)
-            .edit().putString("fcm_token", token).apply()
+        tokenStore.fcmToken = token
+        if (tokenStore.isLoggedIn) {
+            CoroutineScope(Dispatchers.IO).launch {
+                runCatching { api.updateFcmToken(FcmTokenBody(token)) }
+            }
+        }
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
@@ -30,7 +46,7 @@ class GoSyriaMessagingService : FirebaseMessagingService() {
             channelId,
             "طلبات الرحلات",
             NotificationManager.IMPORTANCE_HIGH,
-        ).apply { description = "إشعارات طلبات الرحلات للسائقين" }
+        ).apply { description = "إشعارات طلبات الرحلات" }
         manager.createNotificationChannel(channel)
 
         val intent = Intent(this, MainActivity::class.java).apply {

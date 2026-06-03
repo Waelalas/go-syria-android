@@ -44,6 +44,6 @@ interface ApiService {
         @Query("status") status: String,
     ): GenericResponse
 
-    @POST("drivers/fcm-token")
+    @POST("auth/fcm-token")
     suspend fun updateFcmToken(@Body body: FcmTokenBody): GenericResponse
 }

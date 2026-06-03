@@ -18,11 +18,27 @@ class GeocodingService @Inject constructor(
     suspend fun geocode(address: String): LatLng? = withContext(Dispatchers.IO) {
         if (!Geocoder.isPresent()) return@withContext null
         try {
-            // No bounding box — works globally (Syria, Germany, anywhere)
-            val results = Geocoder(context, Locale.getDefault()).getFromLocationName(address, 1)
-            results?.firstOrNull()?.let { LatLng(it.latitude, it.longitude) }
+            val query = address.trim().withSyriaScope()
+            val results = Geocoder(context, Locale.getDefault()).getFromLocationName(
+                query,
+                5,
+                SyriaGeo.MIN_LAT,
+                SyriaGeo.MIN_LNG,
+                SyriaGeo.MAX_LAT,
+                SyriaGeo.MAX_LNG,
+            )
+
+            results
+                ?.asSequence()
+                ?.map { LatLng(it.latitude, it.longitude) }
+                ?.firstOrNull(SyriaGeo::contains)
         } catch (e: Exception) {
             null
         }
+    }
+
+    private fun String.withSyriaScope(): String {
+        val lower = lowercase(Locale.ROOT)
+        return if ("سوريا" in this || "syria" in lower) this else "$this, سوريا"
     }
 }
