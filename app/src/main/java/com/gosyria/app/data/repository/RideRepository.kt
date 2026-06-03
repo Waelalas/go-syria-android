@@ -11,4 +11,5 @@ interface RideRepository {
     suspend fun cancelRide(rideId: String): Result<Unit>
     suspend fun getOffers(rideId: String): Result<List<RideOffer>>
     suspend fun acceptOffer(rideId: String, driverId: String): Result<RideRequest>
+    suspend fun rateRide(rideId: String, rating: Int): Result<Unit>
 }

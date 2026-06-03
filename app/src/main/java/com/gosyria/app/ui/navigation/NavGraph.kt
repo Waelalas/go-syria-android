@@ -108,8 +108,10 @@ fun NavGraph(appViewModel: AppViewModel = hiltViewModel()) {
         composable(
             route = Screen.Rating.route,
             arguments = listOf(navArgument("rideId") { type = NavType.StringType }),
-        ) {
+        ) { backStackEntry ->
+            val rideId = backStackEntry.arguments?.getString("rideId") ?: ""
             RatingScreen(
+                rideId = rideId,
                 onDone = {
                     navController.navigate(Screen.RiderHome.route) {
                         popUpTo(Screen.RiderHome.route) { inclusive = true }

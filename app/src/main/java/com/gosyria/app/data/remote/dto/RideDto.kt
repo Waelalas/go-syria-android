@@ -1,5 +1,7 @@
 package com.gosyria.app.data.remote.dto
 
+data class RateRideBody(val rating: Int)
+
 data class RequestRideBody(
     val pickup_lat: Double,
     val pickup_lng: Double,

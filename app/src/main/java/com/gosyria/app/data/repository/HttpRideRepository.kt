@@ -5,6 +5,7 @@ import com.google.gson.JsonObject
 import com.gosyria.app.data.local.TokenStore
 import com.gosyria.app.data.model.*
 import com.gosyria.app.data.remote.ApiService
+import com.gosyria.app.data.remote.dto.RateRideBody
 import com.gosyria.app.data.remote.dto.RequestRideBody
 import com.gosyria.app.data.remote.dto.RideOut
 import kotlinx.coroutines.CompletableDeferred
@@ -145,6 +146,9 @@ class HttpRideRepository @Inject constructor(
 
     override suspend fun cancelRide(rideId: String): Result<Unit> =
         runCatching { api.updateRideStatus(rideId, "CANCELLED"); Unit }
+
+    override suspend fun rateRide(rideId: String, rating: Int): Result<Unit> =
+        runCatching { api.rateRide(rideId, RateRideBody(rating)); Unit }
 
     private fun mapStatus(s: String): RideStatus? = when (s) {
         "SEARCHING"       -> RideStatus.SEARCHING

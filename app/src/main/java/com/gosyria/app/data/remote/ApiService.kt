@@ -32,6 +32,9 @@ interface ApiService {
     @POST("drivers/profile")
     suspend fun setDriverProfile(@Body body: DriverProfileBody): GenericResponse
 
+    @POST("rides/{id}/rate")
+    suspend fun rateRide(@Path("id") id: String, @Body body: RateRideBody): GenericResponse
+
     @POST("rides/{id}/status")
     suspend fun updateRideStatus(
         @Path("id") id: String,
