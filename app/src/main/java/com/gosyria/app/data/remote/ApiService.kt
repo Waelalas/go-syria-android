@@ -11,6 +11,9 @@ interface ApiService {
     @POST("rides/request")
     suspend fun requestRide(@Body body: RequestRideBody): RideOut
 
+    @GET("rides/history")
+    suspend fun getMyRides(): List<RideHistoryOut>
+
     @GET("rides/{id}")
     suspend fun getRide(@Path("id") id: String): RideOut
 

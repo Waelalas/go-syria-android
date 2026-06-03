@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.*
@@ -27,6 +28,7 @@ import com.gosyria.app.util.SyriaGeo
 fun DriverHomeScreen(
     onLogout: () -> Unit,
     onRideAccepted: (String) -> Unit,
+    onHistory: () -> Unit = {},
     viewModel: DriverHomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -58,6 +60,9 @@ fun DriverHomeScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                 ),
                 actions = {
+                    IconButton(onClick = onHistory) {
+                        Icon(Icons.Filled.History, contentDescription = "رحلاتي", tint = MaterialTheme.colorScheme.onPrimary)
+                    }
                     IconButton(onClick = { viewModel.switchRole { onLogout() } }) {
                         Icon(Icons.Filled.Logout, contentDescription = "تسجيل الخروج", tint = MaterialTheme.colorScheme.onPrimary)
                     }

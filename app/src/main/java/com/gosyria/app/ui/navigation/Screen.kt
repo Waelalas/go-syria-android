@@ -14,4 +14,5 @@ sealed class Screen(val route: String) {
     object Rating     : Screen("rating/{rideId}") {
         fun createRoute(rideId: String) = "rating/$rideId"
     }
+    object History    : Screen("history")
 }

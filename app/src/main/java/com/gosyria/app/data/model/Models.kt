@@ -52,3 +52,14 @@ data class RideOffer(
     val fare: Double,
     val etaMinutes: Int,
 )
+
+data class RideHistoryItem(
+    val id: String,
+    val otherPartyName: String,
+    val pickupAddress: String,
+    val destAddress: String,
+    val fare: Double,
+    val status: String,
+    val riderRating: Double?,
+    val createdAt: String,
+)

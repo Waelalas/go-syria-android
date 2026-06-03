@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.gosyria.app.data.local.TokenStore
 import com.gosyria.app.data.model.*
+import com.gosyria.app.data.remote.dto.RideHistoryOut
 import com.gosyria.app.data.remote.ApiService
 import com.gosyria.app.data.remote.dto.RateRideBody
 import com.gosyria.app.data.remote.dto.RequestRideBody
@@ -149,6 +150,21 @@ class HttpRideRepository @Inject constructor(
 
     override suspend fun rateRide(rideId: String, rating: Int): Result<Unit> =
         runCatching { api.rateRide(rideId, RateRideBody(rating)); Unit }
+
+    override suspend fun getMyRides(): Result<List<RideHistoryItem>> = runCatching {
+        api.getMyRides().map { r ->
+            RideHistoryItem(
+                id = r.id,
+                otherPartyName = r.other_party_name,
+                pickupAddress = r.pickup_address,
+                destAddress = r.dest_address,
+                fare = r.fare,
+                status = r.status,
+                riderRating = r.rider_rating,
+                createdAt = r.created_at,
+            )
+        }
+    }
 
     private fun mapStatus(s: String): RideStatus? = when (s) {
         "SEARCHING"       -> RideStatus.SEARCHING

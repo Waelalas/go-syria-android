@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Search
@@ -28,6 +29,7 @@ import com.gosyria.app.util.SyriaGeo
 fun RiderHomeScreen(
     onRideStarted: (String) -> Unit,
     onLogout: () -> Unit,
+    onHistory: () -> Unit = {},
     viewModel: RiderHomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -64,6 +66,9 @@ fun RiderHomeScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                 ),
                 actions = {
+                    IconButton(onClick = onHistory) {
+                        Icon(Icons.Filled.History, contentDescription = "رحلاتي", tint = MaterialTheme.colorScheme.onPrimary)
+                    }
                     IconButton(onClick = { viewModel.switchRole { onLogout() } }) {
                         Icon(Icons.Filled.Logout, contentDescription = "تسجيل الخروج", tint = MaterialTheme.colorScheme.onPrimary)
                     }

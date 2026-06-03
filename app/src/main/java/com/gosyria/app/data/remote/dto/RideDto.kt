@@ -2,6 +2,17 @@ package com.gosyria.app.data.remote.dto
 
 data class RateRideBody(val rating: Int)
 
+data class RideHistoryOut(
+    val id: String,
+    val other_party_name: String,
+    val pickup_address: String,
+    val dest_address: String,
+    val fare: Double,
+    val status: String,
+    val rider_rating: Double?,
+    val created_at: String,
+)
+
 data class RequestRideBody(
     val pickup_lat: Double,
     val pickup_lng: Double,

@@ -86,4 +86,7 @@ class MockRideRepository @Inject constructor() : RideRepository {
 
     override suspend fun rateRide(rideId: String, rating: Int): Result<Unit> =
         Result.success(Unit)
+
+    override suspend fun getMyRides(): Result<List<RideHistoryItem>> =
+        Result.success(emptyList())
 }

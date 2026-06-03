@@ -1,6 +1,7 @@
 package com.gosyria.app.data.repository
 
 import com.gosyria.app.data.model.Location
+import com.gosyria.app.data.model.RideHistoryItem
 import com.gosyria.app.data.model.RideOffer
 import com.gosyria.app.data.model.RideRequest
 import kotlinx.coroutines.flow.Flow
@@ -12,4 +13,5 @@ interface RideRepository {
     suspend fun getOffers(rideId: String): Result<List<RideOffer>>
     suspend fun acceptOffer(rideId: String, driverId: String): Result<RideRequest>
     suspend fun rateRide(rideId: String, rating: Int): Result<Unit>
+    suspend fun getMyRides(): Result<List<RideHistoryItem>>
 }

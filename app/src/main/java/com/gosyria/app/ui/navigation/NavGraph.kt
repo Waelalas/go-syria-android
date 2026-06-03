@@ -12,6 +12,7 @@ import com.gosyria.app.ui.AppViewModel
 import com.gosyria.app.ui.screens.auth.LoginScreen
 import com.gosyria.app.ui.screens.driver.DriverHomeScreen
 import com.gosyria.app.ui.screens.driver.DriverTripScreen
+import com.gosyria.app.ui.screens.history.RideHistoryScreen
 import com.gosyria.app.ui.screens.rider.RatingScreen
 import com.gosyria.app.ui.screens.rider.RiderHomeScreen
 import com.gosyria.app.ui.screens.rider.TrackingScreen
@@ -60,7 +61,8 @@ fun NavGraph(appViewModel: AppViewModel = hiltViewModel()) {
                     navController.navigate(Screen.Role.route) {
                         popUpTo(Screen.RiderHome.route) { inclusive = true }
                     }
-                }
+                },
+                onHistory = { navController.navigate(Screen.History.route) },
             )
         }
 
@@ -73,7 +75,8 @@ fun NavGraph(appViewModel: AppViewModel = hiltViewModel()) {
                 },
                 onRideAccepted = { rideId ->
                     navController.navigate(Screen.DriverTrip.createRoute(rideId))
-                }
+                },
+                onHistory = { navController.navigate(Screen.History.route) },
             )
         }
 
@@ -103,6 +106,10 @@ fun NavGraph(appViewModel: AppViewModel = hiltViewModel()) {
                     }
                 },
             )
+        }
+
+        composable(Screen.History.route) {
+            RideHistoryScreen(onBack = { navController.popBackStack() })
         }
 
         composable(
