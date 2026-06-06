@@ -5,6 +5,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -27,6 +31,7 @@ fun TrackingScreen(
     onRideCompleted: () -> Unit,
     viewModel: TrackingViewModel = hiltViewModel(),
 ) {
+    var showCancelDialog by remember { mutableStateOf(false) }
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(rideId) { viewModel.startTracking(rideId) }
@@ -141,9 +146,42 @@ fun TrackingScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
                         )
+                        if (ride.status in listOf(RideStatus.DRIVER_FOUND, RideStatus.DRIVER_EN_ROUTE)) {
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                "وقت الوصول: ${ride.estimatedMinutes} دقيقة",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                        if (ride.status in listOf(RideStatus.SEARCHING, RideStatus.DRIVER_FOUND, RideStatus.DRIVER_EN_ROUTE)) {
+                            Spacer(Modifier.height(12.dp))
+                            OutlinedButton(
+                                onClick = { showCancelDialog = true },
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                                modifier = Modifier.fillMaxWidth(),
+                            ) { Text("إلغاء الرحلة") }
+                        }
                     }
                 }
             }
         }
+    }
+
+    if (showCancelDialog) {
+        AlertDialog(
+            onDismissRequest = { showCancelDialog = false },
+            title = { Text("إلغاء الرحلة") },
+            text = { Text("هل أنت متأكد من إلغاء الرحلة؟") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showCancelDialog = false
+                    viewModel.cancelRide()
+                }) { Text("نعم، إلغاء", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCancelDialog = false }) { Text("تراجع") }
+            }
+        )
     }
 }

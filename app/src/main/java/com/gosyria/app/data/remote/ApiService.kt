@@ -44,6 +44,9 @@ interface ApiService {
         @Query("status") status: String,
     ): GenericResponse
 
+    @POST("rides/{id}/cancel")
+    suspend fun cancelRide(@Path("id") id: String): GenericResponse
+
     @POST("auth/fcm-token")
     suspend fun updateFcmToken(@Body body: FcmTokenBody): GenericResponse
 }

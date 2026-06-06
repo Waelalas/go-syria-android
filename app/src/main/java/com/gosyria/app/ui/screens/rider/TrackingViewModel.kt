@@ -26,7 +26,10 @@ class TrackingViewModel @Inject constructor(
     private val _state = MutableStateFlow(TrackingState())
     val state = _state.asStateFlow()
 
+    private var currentRideId: String? = null
+
     fun startTracking(rideId: String) {
+        currentRideId = rideId
         viewModelScope.launch {
             rideRepo.observeRide(rideId).collect { ride ->
                 _state.update {
@@ -37,6 +40,13 @@ class TrackingViewModel @Inject constructor(
                     )
                 }
             }
+        }
+    }
+
+    fun cancelRide() {
+        val rideId = currentRideId ?: return
+        viewModelScope.launch {
+            rideRepo.cancelRide(rideId)
         }
     }
 }

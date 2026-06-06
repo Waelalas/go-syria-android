@@ -77,15 +77,24 @@ class HttpRideRepository @Inject constructor(
                                 "DRIVER_FOUND" -> {
                                     val driverLat = obj.get("driver_lat")?.asDouble
                                     val driverLng = obj.get("driver_lng")?.asDouble
+                                    val eta = obj.get("eta_minutes")?.asInt ?: 5
                                     scope.launch {
                                         runCatching { api.getRide(rideId).toModel() }.onSuccess { ride ->
-                                            val updated = if (driverLat != null && driverLng != null)
-                                                ride.copy(driverLocation = Location(driverLat, driverLng))
-                                            else ride
+                                            val updated = ride.copy(
+                                                estimatedMinutes = eta,
+                                                driverLocation = if (driverLat != null && driverLng != null)
+                                                    Location(driverLat, driverLng) else ride.driverLocation,
+                                            )
                                             currentRide.set(updated)
                                             trySend(updated)
                                         }
                                     }
+                                }
+                                "RIDE_CANCELLED" -> {
+                                    val updated = currentRide.get()?.copy(status = RideStatus.CANCELLED)
+                                        ?: return@runCatching
+                                    currentRide.set(updated)
+                                    trySend(updated)
                                 }
                                 "DRIVER_LOCATION_UPDATE" -> {
                                     val lat = obj.get("lat")?.asDouble ?: return@runCatching
@@ -146,7 +155,7 @@ class HttpRideRepository @Inject constructor(
         runCatching { api.getRide(rideId).toModel() }
 
     override suspend fun cancelRide(rideId: String): Result<Unit> =
-        runCatching { api.updateRideStatus(rideId, "CANCELLED"); Unit }
+        runCatching { api.cancelRide(rideId); Unit }
 
     override suspend fun rateRide(rideId: String, rating: Int): Result<Unit> =
         runCatching { api.rateRide(rideId, RateRideBody(rating)); Unit }
