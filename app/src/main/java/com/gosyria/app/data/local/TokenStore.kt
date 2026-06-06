@@ -1,6 +1,8 @@
 package com.gosyria.app.data.local
 
 import android.content.Context
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -8,8 +10,20 @@ import javax.inject.Singleton
 @Singleton
 class TokenStore @Inject constructor(@ApplicationContext context: Context) {
 
-    private val prefs    = context.getSharedPreferences("gosyria_prefs", Context.MODE_PRIVATE)
-    private val fcmPrefs = context.getSharedPreferences("gosyria_fcm",   Context.MODE_PRIVATE)
+    private val masterKey = MasterKey.Builder(context)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
+
+    private val prefs = EncryptedSharedPreferences.create(
+        context, "gosyria_prefs", masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+    )
+    private val fcmPrefs = EncryptedSharedPreferences.create(
+        context, "gosyria_fcm", masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+    )
 
     // @Volatile ensures cross-thread visibility (coroutine write → OkHttp thread read)
     @Volatile private var _token:    String? = prefs.getString("token",     null)
