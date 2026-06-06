@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -6,6 +8,11 @@ plugins {
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id("com.google.firebase.appdistribution")
+}
+
+val localProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) load(f.inputStream())
 }
 
 android {
@@ -23,7 +30,7 @@ android {
     }
 
     buildTypes {
-        val mapsKey = project.findProperty("MAPS_API_KEY")?.toString() ?: ""
+        val mapsKey = localProps.getProperty("MAPS_API_KEY") ?: ""
         debug {
             isDebuggable = true
             manifestPlaceholders["MAPS_API_KEY"] = mapsKey
